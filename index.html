@@ -220,15 +220,79 @@
     }
 
     a { color: #0645d8; }
+
+    .auth-screen {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: var(--head);
+    }
+
+    .auth-panel {
+      width: min(420px, 100%);
+      padding: 24px;
+      background: #fff;
+      border: 1px solid #d1d5db;
+      box-shadow: 0 16px 50px rgba(0, 0, 0, 0.22);
+    }
+
+    .auth-panel h1 {
+      margin: 0 0 8px;
+      color: var(--ink);
+      font-size: 22px;
+    }
+
+    .auth-panel p {
+      margin: 0 0 18px;
+      color: var(--muted);
+    }
+
+    .auth-panel button {
+      height: 36px;
+      border: 0;
+      border-radius: 4px;
+      padding: 0 14px;
+      background: var(--head);
+      color: #fff;
+      font: inherit;
+      font-weight: 650;
+      cursor: pointer;
+    }
+
+    .auth-error {
+      min-height: 20px;
+      margin-top: 10px;
+      color: var(--fail);
+      font-weight: 650;
+    }
+
+    .hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Picasso PRD - Conectividade de integrações</h1>
-    <p>Tabela única de domínios, endpoints, integrações, caminho testado e estado atual. Objetivo: conectividade, não validação funcional ponta a ponta.</p>
-  </header>
+  <section id="authScreen" class="auth-screen" aria-label="Acesso restrito">
+    <form id="authForm" class="auth-panel">
+      <h1>Acesso restrito</h1>
+      <p>Introduza a senha para consultar o relatório de conectividade.</p>
+      <label>
+        Senha
+        <input id="passwordInput" type="password" autocomplete="current-password" autofocus>
+      </label>
+      <button type="submit">Entrar</button>
+      <div id="authError" class="auth-error" aria-live="polite"></div>
+    </form>
+  </section>
 
-  <main>
+  <div id="reportContent" class="hidden">
+    <header>
+      <h1>Picasso PRD - Conectividade de integrações</h1>
+      <p>Tabela única de domínios, endpoints, integrações, caminho testado e estado atual. Objetivo: conectividade, não validação funcional ponta a ponta.</p>
+    </header>
+
+    <main>
     <div class="toolbar" aria-label="Filtros da tabela">
       <label>
         Grupo
@@ -278,9 +342,45 @@
       </thead>
       <tbody id="connectivityRows"></tbody>
     </table>
-  </main>
+    </main>
+  </div>
 
   <script>
+    const PASSWORD_HASH = "09a36f5b8efb514dd969d5140ddc92e9992a83b30a7f28230d97b59807469d7b";
+
+    const authScreen = document.getElementById("authScreen");
+    const authForm = document.getElementById("authForm");
+    const authError = document.getElementById("authError");
+    const passwordInput = document.getElementById("passwordInput");
+    const reportContent = document.getElementById("reportContent");
+
+    async function sha256(value) {
+      const buffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+      return Array.from(new Uint8Array(buffer))
+        .map(byte => byte.toString(16).padStart(2, "0"))
+        .join("");
+    }
+
+    function showReport() {
+      authScreen.classList.add("hidden");
+      reportContent.classList.remove("hidden");
+      sessionStorage.setItem("picasso-connectivity-auth", "ok");
+      render();
+    }
+
+    authForm.addEventListener("submit", async event => {
+      event.preventDefault();
+      authError.textContent = "";
+      const hash = await sha256(passwordInput.value);
+      if (hash === PASSWORD_HASH) {
+        showReport();
+        return;
+      }
+      passwordInput.value = "";
+      passwordInput.focus();
+      authError.textContent = "Senha inválida.";
+    });
+
     const rows = [
       {
         group: "DataPower",
@@ -793,7 +893,10 @@
     });
 
     populateFilters();
-    render();
+
+    if (sessionStorage.getItem("picasso-connectivity-auth") === "ok") {
+      showReport();
+    }
   </script>
 </body>
 </html>
