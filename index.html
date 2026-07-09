@@ -1,0 +1,799 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Picasso PRD - Conectividade de integrações</title>
+  <style>
+    :root {
+      --bg: #f7f8fa;
+      --ink: #172033;
+      --muted: #5b6472;
+      --line: #cfd6e0;
+      --head: #111827;
+      --ok-bg: #dff5e5;
+      --ok: #166534;
+      --fail-bg: #fde2e2;
+      --fail: #991b1b;
+      --inconclusive-bg: #fff7d6;
+      --inconclusive: #854d0e;
+      --pending-bg: #eceff5;
+      --pending: #374151;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 14px;
+    }
+
+    header {
+      padding: 18px 22px;
+      background: var(--head);
+      color: #fff;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 22px;
+      font-weight: 650;
+    }
+
+    header p {
+      margin: 0;
+      color: #d1d5db;
+    }
+
+    main {
+      padding: 18px 22px 28px;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: end;
+      margin-bottom: 14px;
+      padding: 12px;
+      background: #fff;
+      border: 1px solid var(--line);
+    }
+
+    label {
+      display: grid;
+      gap: 4px;
+      min-width: 190px;
+      font-weight: 650;
+      color: #253044;
+    }
+
+    select,
+    input {
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 5px 8px;
+      font: inherit;
+      font-weight: 400;
+      color: var(--ink);
+      background: #fff;
+    }
+
+    .count {
+      color: var(--muted);
+      margin-left: auto;
+      padding-bottom: 7px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border: 1px solid var(--line);
+    }
+
+    th,
+    td {
+      border: 1px solid var(--line);
+      padding: 9px 10px;
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--head);
+      color: #fff;
+      text-align: left;
+      font-weight: 650;
+      white-space: nowrap;
+      padding: 0;
+    }
+
+    th button {
+      width: 100%;
+      height: 100%;
+      min-height: 39px;
+      border: 0;
+      padding: 9px 10px;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    th button.sorted {
+      background: #243044;
+      box-shadow: inset 0 -3px 0 #60a5fa;
+    }
+
+    th button:hover,
+    th button:focus {
+      background: #1f2937;
+      outline: none;
+    }
+
+    .sort-indicator {
+      display: inline-block;
+      min-width: 16px;
+      color: #bfdbfe;
+      margin-left: 6px;
+      font-size: 12px;
+    }
+
+    td.group {
+      font-weight: 650;
+      width: 145px;
+    }
+
+    td.domain {
+      width: 225px;
+      word-break: break-word;
+    }
+
+    td.endpoint {
+      width: 330px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 13px;
+      word-break: break-word;
+    }
+
+    td.integration {
+      width: 210px;
+      font-weight: 620;
+      font-size: 15px;
+      color: #0f172a;
+      background: #f8fafc;
+    }
+
+    td.direction {
+      width: 90px;
+      white-space: nowrap;
+    }
+
+    td.refs {
+      width: 170px;
+      font-size: 13px;
+    }
+
+    td.resources {
+      width: 230px;
+      font-size: 13px;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 3px 7px;
+      border-radius: 999px;
+      font-weight: 650;
+      white-space: nowrap;
+      margin-bottom: 4px;
+    }
+
+    .ok { background: var(--ok-bg); color: var(--ok); }
+    .fail { background: var(--fail-bg); color: var(--fail); }
+    .inconclusive { background: var(--inconclusive-bg); color: var(--inconclusive); }
+    .pending { background: var(--pending-bg); color: var(--pending); }
+
+    tbody tr.status-ok td:not([rowspan]) { background: #f0fbf3; }
+    tbody tr.status-fail td:not([rowspan]) { background: #fff0f0; }
+    tbody tr.status-inconclusive td:not([rowspan]) { background: #fffaf0; }
+    tbody tr.status-pending td:not([rowspan]) { background: #f6f8fb; }
+    tbody tr.status-ok td.integration { background: #e8f8ee; }
+    tbody tr.status-fail td.integration { background: #fde8e8; }
+    tbody tr.status-inconclusive td.integration { background: #fff3c4; }
+    tbody tr.status-pending td.integration { background: #eef2f7; }
+
+    code {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 13px;
+      background: #f1f5f9;
+      padding: 1px 4px;
+      border-radius: 4px;
+    }
+
+    a { color: #0645d8; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Picasso PRD - Conectividade de integrações</h1>
+    <p>Tabela única de domínios, endpoints, integrações, caminho testado e estado atual. Objetivo: conectividade, não validação funcional ponta a ponta.</p>
+  </header>
+
+  <main>
+    <div class="toolbar" aria-label="Filtros da tabela">
+      <label>
+        Grupo
+        <select id="groupFilter">
+          <option value="">Todos</option>
+        </select>
+      </label>
+      <label>
+        Integração
+        <input id="integrationFilter" type="search" placeholder="Filtrar por texto">
+      </label>
+      <label>
+        Estado
+        <select id="statusFilter">
+          <option value="">Todos</option>
+          <option value="ok">Testado / sucesso</option>
+          <option value="fail">Falha</option>
+          <option value="inconclusive">Inconclusivo</option>
+          <option value="pending">A testar / pendente</option>
+        </select>
+      </label>
+      <label>
+        Direção
+        <select id="directionFilter">
+          <option value="">Todas</option>
+          <option value="outbound">Outbound</option>
+          <option value="inbound">Inbound</option>
+          <option value="na">N/A</option>
+        </select>
+      </label>
+      <div class="count" id="rowCount"></div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th><button type="button" data-sort="group">Grupo<span class="sort-indicator"></span></button></th>
+          <th><button type="button" data-sort="domainSort">DomainName PRD<span class="sort-indicator"></span></button></th>
+          <th><button type="button" data-sort="endpoint">Endpoint<span class="sort-indicator"></span></button></th>
+          <th><button type="button" data-sort="integration">Integrações envolvidas<span class="sort-indicator"></span></button></th>
+          <th><button type="button" data-sort="directionSort">Direção<span class="sort-indicator"></span></button></th>
+          <th><button type="button" data-sort="refsSort">Refs<span class="sort-indicator"></span></button></th>
+          <th><button type="button" data-sort="pathSort">Caminho de teste<span class="sort-indicator"></span></button></th>
+          <th><button type="button" data-sort="resourcesSort">Recursos usados<span class="sort-indicator"></span></button></th>
+          <th><button type="button" data-sort="stateSort">Estado atual<span class="sort-indicator"></span></button></th>
+        </tr>
+      </thead>
+      <tbody id="connectivityRows"></tbody>
+    </table>
+  </main>
+
+  <script>
+    const rows = [
+      {
+        group: "DataPower",
+        domain: "https://esb.intranet.edp.pt<br><span class=\"muted\">Repo/config: <code>DpDomain</code></span>",
+        domainSort: "https://esb.intranet.edp.pt",
+        endpoint: "/PI_EDP_ECC_MM/WorkOrder/Mobilidade/V1/update",
+        integration: "ID17 updateOrder",
+        direction: "outbound",
+        directionSort: "Outbound",
+        refs: "<a href=\"https://agile.corp.edp.pt/browse/PCSS-176\">PCSS-176</a>",
+        refsSort: "PCSS-176",
+        path: "Integration Request + SCHD Function",
+        pathSort: "Integration Request SCHD Function",
+        resources: "JavaScript DevTools; IR <code>updateOrder</code>; SCHD <code>UpdateOrders</code>; DataPower.",
+        resourcesSort: "JavaScript DevTools IR updateOrder SCHD UpdateOrders DataPower",
+        status: "inconclusive",
+        stateSort: "Inconclusivo 500 Internal Server Error",
+        state: "<span class=\"pill inconclusive\">Inconclusivo</span><br>Aparentemente a conectividade está ok, mas o response foi <code>500 Internal Server Error</code>, não <code>Bad Request</code> ou equivalente."
+      },
+      {
+        group: "DataPower",
+        domain: "https://esb.intranet.edp.pt<br><span class=\"muted\">Repo/config: <code>DpDomain</code></span>",
+        domainSort: "https://esb.intranet.edp.pt",
+        endpoint: "/PI_EDP_ECC_MM/WorkOrder/Mobilidade/V1/update",
+        integration: "ID32 updateOrder",
+        direction: "outbound",
+        directionSort: "Outbound",
+        refs: "<a href=\"https://agile.corp.edp.pt/browse/PCSS-198\">PCSS-198</a>, <a href=\"https://agile.corp.edp.pt/browse/PCSS-283\">PCSS-283</a>",
+        refsSort: "PCSS-198 PCSS-283",
+        path: "Integration Request + SCHD Function",
+        pathSort: "Integration Request SCHD Function",
+        resources: "JavaScript DevTools; IR <code>updateOrder</code>; SCHD <code>UpdateOrders</code>; DataPower.",
+        resourcesSort: "JavaScript DevTools IR updateOrder SCHD UpdateOrders DataPower",
+        status: "inconclusive",
+        stateSort: "Inconclusivo 500 Internal Server Error",
+        state: "<span class=\"pill inconclusive\">Inconclusivo</span><br>Aparentemente a conectividade está ok, mas o response foi <code>500 Internal Server Error</code>, não <code>Bad Request</code> ou equivalente."
+      },
+      {
+        group: "DataPower",
+        domain: "https://esb.intranet.edp.pt<br><span class=\"muted\">Repo/config: <code>DpDomain</code></span>",
+        domainSort: "https://esb.intranet.edp.pt",
+        endpoint: "/PI_EDP_ECC_MM/WorkOrder/Mobilidade/V1/update",
+        integration: "ID46 updateOrder",
+        direction: "outbound",
+        directionSort: "Outbound",
+        refs: "ID46",
+        refsSort: "ID46",
+        path: "Integration Request + SCHD Function",
+        pathSort: "Integration Request SCHD Function",
+        resources: "JavaScript DevTools; IR <code>updateOrder</code>; SCHD <code>UpdateOrders</code>; DataPower.",
+        resourcesSort: "JavaScript DevTools IR updateOrder SCHD UpdateOrders DataPower",
+        status: "inconclusive",
+        stateSort: "Inconclusivo 500 Internal Server Error",
+        state: "<span class=\"pill inconclusive\">Inconclusivo</span><br>Aparentemente a conectividade está ok, mas o response foi <code>500 Internal Server Error</code>, não <code>Bad Request</code> ou equivalente."
+      },
+      {
+        group: "DataPower",
+        domain: "https://esb.intranet.edp.pt<br><span class=\"muted\">Repo/config: <code>DpDomain</code></span>",
+        domainSort: "https://esb.intranet.edp.pt",
+        endpoint: "/ProjectSystem/ConstructionWork/MOBILIDADE/V3/setEndDate",
+        integration: "ID66 sendEndDate",
+        direction: "outbound",
+        directionSort: "Outbound",
+        refs: "<a href=\"https://agile.corp.edp.pt/browse/INT-9318\">INT-9318</a><br><a href=\"https://agile.corp.edp.pt/browse/PCSS-435\">PCSS-435</a>",
+        refsSort: "INT-9318 PCSS-435",
+        path: "Integration Request + SCHD Function",
+        pathSort: "Integration Request SCHD Function",
+        resources: "JavaScript DevTools; IR <code>sendEndDate</code>; SCHD <code>SendEndDate</code>; DataPower.",
+        resourcesSort: "JavaScript DevTools IR sendEndDate SCHD SendEndDate DataPower",
+        status: "inconclusive",
+        stateSort: "Inconclusivo 500 Internal Server Error",
+        state: "<span class=\"pill inconclusive\">Inconclusivo</span><br>Aparentemente a conectividade está ok, mas o response foi <code>500 Internal Server Error</code>, não <code>Bad Request</code> ou equivalente."
+      },
+      {
+        group: "DataPower",
+        domain: "https://esb.intranet.edp.pt<br><span class=\"muted\">Repo/config: <code>DpDomain</code></span>",
+        domainSort: "https://esb.intranet.edp.pt",
+        endpoint: "/Z_EDP_GENERIC_SERVICES/ServiceCallBack/Mobilidade/V1",
+        integration: "ServiceCallback outbound / callback JUMP",
+        direction: "inbound",
+        directionSort: "Inbound",
+        refs: "JUMP callbacks",
+        refsSort: "JUMP callbacks",
+        path: "Integration Request + SCHD Function",
+        pathSort: "Integration Request SCHD Function",
+        resources: "IR <code>callBackIn</code>; SCHD <code>ServiceCallback</code>; referência IR original.",
+        resourcesSort: "IR callBackIn SCHD ServiceCallback referencia IR original",
+        status: "pending",
+        stateSort: "Não testado",
+        state: "<span class=\"pill pending\">Não testado</span>"
+      },
+      {
+        group: "DataPower",
+        domain: "https://esb.intranet.edp.pt<br><span class=\"muted\">Repo/config: <code>DpDomain</code></span>",
+        domainSort: "https://esb.intranet.edp.pt",
+        endpoint: "/distributionelectricity/credentialqualification/v1/GetInfo",
+        integration: "LiveSolutions credentials",
+        direction: "outbound",
+        directionSort: "Outbound",
+        refs: "<a href=\"https://agile.corp.edp.pt/browse/INT-9308\">INT-9308</a><br><a href=\"https://agile.corp.edp.pt/browse/PCSS-301\">PCSS-301</a>",
+        refsSort: "INT-9308 PCSS-301",
+        path: "SCHD Function direta",
+        pathSort: "SCHD Function direta",
+        resources: "SCHD <code>CredentialQualification</code>; DataPower; LiveSolutions; variáveis <code>UserCredentials*</code>.",
+        resourcesSort: "SCHD CredentialQualification DataPower LiveSolutions UserCredentials",
+        status: "pending",
+        stateSort: "Não testado",
+        state: "<span class=\"pill pending\">Não testado</span>"
+      },
+      {
+        group: "DataPower",
+        domain: "https://esb.intranet.edp.pt<br><span class=\"muted\">Repo/config: <code>DpDomain</code></span>",
+        domainSort: "https://esb.intranet.edp.pt",
+        endpoint: "/PI_EDP_ECC_MM/WorkOrder/Mobilidade/V1/OrderData",
+        integration: "ID25 OrderData",
+        direction: "outbound",
+        directionSort: "Outbound",
+        refs: "ID25",
+        refsSort: "ID25",
+        path: "Integration Request + SCHD Function",
+        pathSort: "Integration Request SCHD Function",
+        resources: "JavaScript DevTools; IR <code>orderData</code>; SCHD <code>OrderDataRequests</code>; DataPower.",
+        resourcesSort: "JavaScript DevTools IR orderData SCHD OrderDataRequests DataPower",
+        status: "ok",
+        stateSort: "Sucesso",
+        state: "<span class=\"pill ok\">Sucesso</span><br>Integration Request processada com sucesso."
+      },
+      {
+        group: "DataPower",
+        domain: "https://esb.intranet.edp.pt<br><span class=\"muted\">Repo/config: <code>DpDomain</code></span>",
+        domainSort: "https://esb.intranet.edp.pt",
+        endpoint: "/Archive/Document/Mobilidade/V1/GetList",
+        integration: "ID30 ListDocuments",
+        direction: "outbound",
+        directionSort: "Outbound",
+        refs: "ID30",
+        refsSort: "ID30",
+        path: "Integration Request + SCHD Function",
+        pathSort: "Integration Request SCHD Function",
+        resources: "JavaScript DevTools; IR <code>listDocuments</code>; SCHD <code>ListDocumentsRequests</code>; DataPower.",
+        resourcesSort: "JavaScript DevTools IR listDocuments SCHD ListDocumentsRequests DataPower",
+        status: "inconclusive",
+        stateSort: "Inconclusivo 500 Internal Server Error",
+        state: "<span class=\"pill inconclusive\">Inconclusivo</span><br>Aparentemente a conectividade está ok, mas o response foi <code>500 Internal Server Error</code>, não <code>Bad Request</code> ou equivalente."
+      },
+      {
+        group: "Azure Function HTTP",
+        domain: "Host HTTP Function PRD<br><span class=\"muted\">Endpoint inbound E-Redes; host não consolidado neste ficheiro</span>",
+        domainSort: "Host HTTP Function PRD",
+        endpoint: "/api/v1/mobilidade/workorders/putOrder",
+        integration: "ID16 putOrder",
+        direction: "inbound",
+        directionSort: "Inbound",
+        refs: "<a href=\"https://agile.corp.edp.pt/browse/PCSS-172\">PCSS-172</a>",
+        refsSort: "PCSS-172",
+        path: "Integration Request + SCHD Function",
+        pathSort: "Integration Request SCHD Function",
+        resources: "IR <code>putOrder</code>; SCHD <code>PutOrders</code>; opcionalmente HTTP Function <code>PutOrder</code> para caminho inbound real.",
+        resourcesSort: "IR putOrder SCHD PutOrders HTTP Function PutOrder",
+        status: "pending",
+        stateSort: "A testar",
+        state: "<span class=\"pill pending\">A testar</span><br>PCSS-172 assumido como ID16/putOrder."
+      },
+      {
+        group: "API EDP",
+        domain: "https://api.edp.com/edp/internal",
+        domainSort: "https://api.edp.com/edp/internal",
+        endpoint: "/v1/archive/token",
+        integration: "FAM getToken",
+        direction: "outbound",
+        directionSort: "Outbound",
+        refs: "FAM",
+        refsSort: "FAM",
+        path: "Custom Connector",
+        pathSort: "Custom Connector",
+        resources: "Custom Connector FAM; operation <code>gettoken</code>; Power Platform test operation.",
+        resourcesSort: "Custom Connector FAM gettoken Power Platform test operation",
+        status: "ok",
+        stateSort: "OK 200",
+        state: "<span class=\"pill ok\">OK 200</span><br><code>FAM#200</code> / <code>SUCCESS</code>, token devolvido."
+      },
+      {
+        group: "API EDP",
+        domain: "https://api.edp.com/edp/internal",
+        domainSort: "https://api.edp.com/edp/internal",
+        endpoint: "/v1/archive/async-multipart",
+        integration: "FAM sendFile",
+        direction: "outbound",
+        directionSort: "Outbound",
+        refs: "FAM",
+        refsSort: "FAM",
+        path: "Custom Connector",
+        pathSort: "Custom Connector",
+        resources: "Custom Connector FAM; operation <code>sendfile</code>; payload sem <code>archiveData</code>.",
+        resourcesSort: "Custom Connector FAM sendfile payload sem archiveData",
+        status: "ok",
+        stateSort: "Testado com sucesso",
+        state: "<span class=\"pill ok\">Testado com sucesso</span><br>Erro esperado: <code>The property 'archiveData' is missing.</code>. Para conectividade, erro esperado = sucesso."
+      },
+      {
+        group: "API EDP",
+        domain: "https://api.edp.com/edp/internal",
+        domainSort: "https://api.edp.com/edp/internal",
+        endpoint: "/v1/archive?archiveId=&lt;archiveId&gt;",
+        integration: "FAM getFile",
+        direction: "outbound",
+        directionSort: "Outbound",
+        refs: "FAM",
+        refsSort: "FAM",
+        path: "Custom Connector",
+        pathSort: "Custom Connector",
+        resources: "Custom Connector FAM; operation <code>getfile</code>; <code>archiveId</code> controlado.",
+        resourcesSort: "Custom Connector FAM getfile archiveId controlado",
+        status: "ok",
+        stateSort: "OK 200",
+        state: "<span class=\"pill ok\">OK 200</span><br><code>FAM#200</code> / <code>SUCCESS</code>, <code>archiveUrl</code> devolvida."
+      },
+      {
+        group: "API EDP",
+        domain: "https://api.edp.com/edp/internal",
+        domainSort: "https://api.edp.com/edp/internal",
+        endpoint: "/v1/email-with-template",
+        integration: "Hermes sendEmailWithTemplate",
+        direction: "outbound",
+        directionSort: "Outbound",
+        refs: "Hermes",
+        refsSort: "Hermes",
+        path: "Custom Connector",
+        pathSort: "Custom Connector",
+        resources: "Custom Connector Hermes; template falso/invalido.",
+        resourcesSort: "Custom Connector Hermes template falso invalido",
+        status: "ok",
+        stateSort: "Testado com sucesso",
+        state: "<span class=\"pill ok\">Testado com sucesso</span><br>Erro aplicacional esperado: <code>XML: Invalid template code!</code>. Para conectividade, erro esperado = sucesso."
+      },
+      {
+        group: "API E-REDES",
+        domain: "https://api.e-redes.pt/e-redes/internal",
+        domainSort: "https://api.e-redes.pt/e-redes/internal",
+        endpoint: "/v1/plan-execute-projects/construct-grid-assets/prog2/pendence/create",
+        integration: "PROGEST SetPendency",
+        direction: "outbound",
+        directionSort: "Outbound",
+        refs: "<a href=\"https://agile.corp.edp.pt/browse/INT-9273\">INT-9273</a>, <a href=\"https://agile.corp.edp.pt/browse/INT-9276\">INT-9276</a><br><a href=\"https://agile.corp.edp.pt/browse/PCSS-344\">PCSS-344</a>, <a href=\"https://agile.corp.edp.pt/browse/PCSS-995\">PCSS-995</a>",
+        refsSort: "INT-9273 INT-9276 PCSS-344 PCSS-995",
+        path: "Custom Connector",
+        pathSort: "Custom Connector",
+        resources: "Custom Connector PROGEST; payload minimo/controlado.",
+        resourcesSort: "Custom Connector PROGEST payload minimo controlado",
+        status: "ok",
+        stateSort: "OK conectividade",
+        state: "<span class=\"pill ok\">OK conectividade</span>"
+      },
+      {
+        group: "API E-REDES",
+        domain: "https://api.e-redes.pt/e-redes/internal",
+        domainSort: "https://api.e-redes.pt/e-redes/internal",
+        endpoint: "/v1/networks-pt/asset-management/master-data/asset/tree?technicalObject=&lt;value&gt;",
+        integration: "JUMP AssetTree",
+        direction: "outbound",
+        directionSort: "Outbound",
+        refs: "<a href=\"https://agile.corp.edp.pt/browse/INT-9290\">INT-9290</a><br><a href=\"https://agile.corp.edp.pt/browse/PCSS-970\">PCSS-970</a>",
+        refsSort: "INT-9290 PCSS-970",
+        path: "Custom Connector",
+        pathSort: "Custom Connector",
+        resources: "Custom Connector JUMP; operation <code>AssetTree</code>.",
+        resourcesSort: "Custom Connector JUMP AssetTree",
+        status: "ok",
+        stateSort: "OK conectividade",
+        state: "<span class=\"pill ok\">OK conectividade</span><br>Teste reportado como sucesso."
+      },
+      {
+        group: "API E-REDES",
+        domain: "https://api.e-redes.pt/e-redes/internal",
+        domainSort: "https://api.e-redes.pt/e-redes/internal",
+        endpoint: "/v1/field-services/distributed-logistics/materials/check",
+        integration: "JUMP ValidateStock / ID290",
+        direction: "outbound",
+        directionSort: "Outbound",
+        refs: "<a href=\"https://agile.corp.edp.pt/browse/INT-9318\">INT-9318</a>, <a href=\"https://agile.corp.edp.pt/browse/INT-9276\">INT-9276</a><br><a href=\"https://agile.corp.edp.pt/browse/PCSS-196\">PCSS-196</a>",
+        refsSort: "INT-9318 INT-9276 PCSS-196",
+        path: "Custom Connector",
+        pathSort: "Custom Connector",
+        resources: "Custom Connector JUMP; operation <code>validatestock</code>; também consumido por UI/backend.",
+        resourcesSort: "Custom Connector JUMP validatestock UI backend",
+        status: "fail",
+        stateSort: "Falha 404",
+        state: "<span class=\"pill fail\">Falha 404</span><br><code>No resources match requested URI</code>. Retestado depois do OK de release e manteve erro."
+      },
+      {
+        group: "API E-REDES",
+        domain: "https://api.e-redes.pt/e-redes/internal",
+        domainSort: "https://api.e-redes.pt/e-redes/internal",
+        endpoint: "/v1/order-management/follow-up-monitor/field-service-order",
+        integration: "Mobilidade Get Orders / Field Service Order",
+        direction: "outbound",
+        directionSort: "Outbound",
+        refs: "<a href=\"https://agile.corp.edp.pt/browse/INT-9322\">INT-9322</a><br><a href=\"https://agile.corp.edp.pt/browse/PCSS-480\">PCSS-480</a>",
+        refsSort: "INT-9322 PCSS-480",
+        path: "Custom Connector",
+        pathSort: "Custom Connector",
+        resources: "Custom Connector Mobilidade; número de OT fake/controlado.",
+        resourcesSort: "Custom Connector Mobilidade numero OT fake controlado",
+        status: "fail",
+        stateSort: "Falha 404",
+        state: "<span class=\"pill fail\">Falha 404</span><br><code>No resources match requested URI</code>."
+      },
+      {
+        group: "API E-REDES",
+        domain: "https://api.e-redes.pt/e-redes/internal",
+        domainSort: "https://api.e-redes.pt/e-redes/internal",
+        endpoint: "/v2/grid-infrastructure/public-lighting-location",
+        integration: "PIP / public-lighting-location / getPips",
+        direction: "outbound",
+        directionSort: "Outbound",
+        refs: "PIP",
+        refsSort: "PIP",
+        path: "Custom Connector",
+        pathSort: "Custom Connector",
+        resources: "Custom Connector JUMP/PIP; operation <code>getPips</code>; coordenadas, raio e limite baixo.",
+        resourcesSort: "Custom Connector JUMP PIP getPips coordenadas raio limite baixo",
+        status: "pending",
+        stateSort: "Nao testado",
+        state: "<span class=\"pill pending\">Não testado neste ciclo</span>"
+      },
+      {
+        group: "Gateway EDP",
+        domain: "https://gateway.corp.edp.com",
+        domainSort: "https://gateway.corp.edp.com",
+        endpoint: "/customermanagement/ccenter/flow/v1?operation=triggerflowinteraction&amp;flowid=&lt;flowId PRD&gt;",
+        integration: "TalkDesk outbound",
+        direction: "outbound",
+        directionSort: "Outbound",
+        refs: "<a href=\"https://agile.corp.edp.pt/browse/INT-9285\">INT-9285</a><br><a href=\"https://agile.corp.edp.pt/browse/PCSS-705\">PCSS-705</a>",
+        refsSort: "INT-9285 PCSS-705",
+        path: "Custom Connector",
+        pathSort: "Custom Connector",
+        resources: "Custom Connector TalkDesk; números fake; <code>flowId</code> PRD.",
+        resourcesSort: "Custom Connector TalkDesk numeros fake flowId PRD",
+        status: "fail",
+        stateSort: "Falha 401",
+        state: "<span class=\"pill fail\">Falha 401</span><br><code>Request Rejected: Invalid Credentials</code>. Falta confirmar <code>flowId</code> e credenciais PRD."
+      },
+      {
+        group: "Intent Designer",
+        domain: "https://designer-interoperability-openprojectcontext.com",
+        domainSort: "https://designer-interoperability-openprojectcontext.com",
+        endpoint: "Base deeplink",
+        integration: "Designer deeplink / Open Project Context",
+        direction: "na",
+        directionSort: "N/A",
+        refs: "Config PRD",
+        refsSort: "Config PRD",
+        path: "Configuração",
+        pathSort: "Configuracao",
+        resources: "Environment variable / setting <code>designer_deeplink_base</code>.",
+        resourcesSort: "Environment variable setting designer_deeplink_base",
+        status: "pending",
+        stateSort: "Não testado",
+        state: "<span class=\"pill pending\">Não testado</span>"
+      },
+    ];
+
+    const tbody = document.getElementById("connectivityRows");
+    const groupFilter = document.getElementById("groupFilter");
+    const integrationFilter = document.getElementById("integrationFilter");
+    const statusFilter = document.getElementById("statusFilter");
+    const directionFilter = document.getElementById("directionFilter");
+    const rowCount = document.getElementById("rowCount");
+    const sortButtons = Array.from(document.querySelectorAll("[data-sort]"));
+    let sortState = { key: "group", direction: "asc" };
+
+    function normalize(value) {
+      return String(value ?? "")
+        .replace(/<[^>]+>/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLocaleLowerCase("pt-PT");
+    }
+
+    function statusLabel(status) {
+      if (status === "ok") return "Testado / sucesso";
+      if (status === "fail") return "Falha";
+      if (status === "inconclusive") return "Inconclusivo";
+      return "A testar / pendente";
+    }
+
+    function directionLabel(direction) {
+      if (direction === "outbound") return "Outbound";
+      if (direction === "inbound") return "Inbound";
+      return "N/A";
+    }
+
+    function populateFilters() {
+      [...new Set(rows.map(row => row.group))]
+        .sort((a, b) => a.localeCompare(b, "pt-PT"))
+        .forEach(group => {
+          const option = document.createElement("option");
+          option.value = group;
+          option.textContent = group;
+          groupFilter.appendChild(option);
+        });
+    }
+
+    function filteredRows() {
+      const group = groupFilter.value;
+      const integration = normalize(integrationFilter.value);
+      const status = statusFilter.value;
+      const direction = directionFilter.value;
+
+      return rows.filter(row => {
+        const groupMatch = !group || row.group === group;
+        const integrationMatch = !integration || normalize(row.integration).includes(integration);
+        const statusMatch = !status || row.status === status;
+        const directionMatch = !direction || row.direction === direction;
+        return groupMatch && integrationMatch && statusMatch && directionMatch;
+      });
+    }
+
+    function sortedRows(data) {
+      const { key, direction } = sortState;
+      const multiplier = direction === "asc" ? 1 : -1;
+
+      return [...data].sort((a, b) => {
+        const left = normalize(a[key]);
+        const right = normalize(b[key]);
+        const result = left.localeCompare(right, "pt-PT", { numeric: true, sensitivity: "base" });
+        return result * multiplier;
+      });
+    }
+
+    function spanLength(data, start, key) {
+      const value = data[start][key];
+      let count = 1;
+      for (let index = start + 1; index < data.length; index += 1) {
+        if (data[index][key] !== value) break;
+        count += 1;
+      }
+      return count;
+    }
+
+    function canRenderSpan(data, index, key) {
+      return index === 0 || data[index - 1][key] !== data[index][key];
+    }
+
+    function render() {
+      const data = sortedRows(filteredRows());
+      tbody.innerHTML = "";
+
+      data.forEach((row, index) => {
+        const tr = document.createElement("tr");
+        tr.className = `status-${row.status}`;
+
+        if (canRenderSpan(data, index, "group")) {
+          tr.insertAdjacentHTML("beforeend", `<td class="group" rowspan="${spanLength(data, index, "group")}">${row.group}</td>`);
+        }
+
+        if (canRenderSpan(data, index, "domainSort")) {
+          tr.insertAdjacentHTML("beforeend", `<td class="domain" rowspan="${spanLength(data, index, "domainSort")}">${row.domain}</td>`);
+        }
+
+        if (canRenderSpan(data, index, "endpoint")) {
+          tr.insertAdjacentHTML("beforeend", `<td class="endpoint" rowspan="${spanLength(data, index, "endpoint")}">${row.endpoint}</td>`);
+        }
+
+        tr.insertAdjacentHTML("beforeend", `
+          <td class="integration">${row.integration}</td>
+          <td class="direction">${directionLabel(row.direction)}</td>
+          <td class="refs">${row.refs}</td>
+          <td>${row.path}</td>
+          <td class="resources">${row.resources}</td>
+          <td>${row.state}</td>
+        `);
+
+        tbody.appendChild(tr);
+      });
+
+      rowCount.textContent = `${data.length} de ${rows.length} testes`;
+      updateSortIndicators();
+    }
+
+    function updateSortIndicators() {
+      sortButtons.forEach(button => {
+        const indicator = button.querySelector(".sort-indicator");
+        const active = button.dataset.sort === sortState.key;
+        button.classList.toggle("sorted", active);
+        indicator.textContent = active ? (sortState.direction === "asc" ? "▲" : "▼") : "↕";
+        button.setAttribute(
+          "aria-sort",
+          active
+            ? (sortState.direction === "asc" ? "ascending" : "descending")
+            : "none");
+      });
+    }
+
+    sortButtons.forEach(button => {
+      button.addEventListener("click", () => {
+        const key = button.dataset.sort;
+        sortState = {
+          key,
+          direction: sortState.key === key && sortState.direction === "asc" ? "desc" : "asc"
+        };
+        render();
+      });
+    });
+
+    [groupFilter, integrationFilter, statusFilter, directionFilter].forEach(control => {
+      control.addEventListener("input", render);
+      control.addEventListener("change", render);
+    });
+
+    populateFilters();
+    render();
+  </script>
+</body>
+</html>
